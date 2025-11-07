@@ -93,8 +93,10 @@ let result = formatter.format({
 });
 ```
 
-## Integration with Amount and Decimal
+## Integration with Future Proposals
 
 The Amount proposal seeks to add a primordial encapsulating a numeric type with a unit. It will implement the Intl protocol specified here.
 
-The Decimal proposal seeks to add a primordial that represents a decimal number in a form designed for correct and efficient arithmetic. It will be supported as another number type for the `number` field in the protocol.
+The Decimal proposal seeks to add a primordial that represents a decimal number in a form designed for correct and efficient arithmetic. It will likely be supported as another number type for the `number` field in the protocol.
+
+Other fields could be added to this protocol in the future, such as alternative ways of expressing precision or an override to the number of significant digits specified in the constructor.
