@@ -1,50 +1,100 @@
-# template-for-proposals
+# TC39 Intl Unit Protocol
 
-A repository template for ECMAScript proposals.
+Status: Stage 0
 
-## Before creating a proposal
+Champion: Shane F Carr (Google i18n)
 
-Please ensure the following:
-  1. You have read the [process document](https://tc39.github.io/process-document/)
-  1. You have reviewed the [existing proposals](https://github.com/tc39/proposals/)
-  1. You are aware that your proposal requires being a member of TC39, or locating a TC39 delegate to “champion” your proposal
+## Background
 
-## Create your proposal repo
+The i18n community has converged on the principle that a number ought to be annotated with the quantity it is measuring. Unlike the localized decimal separators, numbering systems for digits, and grouping strategy, the unit is a core part of the data model to be formatted, not a style that gets applied by the formatter.
 
-Follow these steps:
-  1. Click the green [“use this template”](https://github.com/tc39/template-for-proposals/generate) button in the repo header. (Note: Do not fork this repo in GitHub's web interface, as that will later prevent transfer into the TC39 organization)
-  1. Update ecmarkup and the biblio to the latest version: `npm install --save-dev ecmarkup@latest && npm install --save-dev --save-exact @tc39/ecma262-biblio@latest`.
-  1. Go to your repo settings page:
-      1. Under “General”, under “Features”, ensure “Issues” is checked, and disable “Wiki”, and “Projects” (unless you intend to use Projects)
-      1. Under “Pull Requests”, check “Always suggest updating pull request branches” and “automatically delete head branches”
-      1. Under the “Pages” section on the left sidebar, and set the source to “deploy from a branch”, select “gh-pages” in the branch dropdown, and then ensure that “Enforce HTTPS” is checked.
-      1. Under the “Actions” section on the left sidebar, under “General”, select “Read and write permissions” under “Workflow permissions” and click “Save”
-  1. [“How to write a good explainer”][explainer] explains how to make a good first impression.
+For example, when formatting messages, this allows the measurement to be localized with locale unit preferences.
 
-      > Each TC39 proposal should have a `README.md` file which explains the purpose
-      > of the proposal and its shape at a high level.
-      >
-      > ...
-      >
-      > The rest of this page can be used as a template ...
+```javascript
+const message = "You are {$distance :unit usage=road} from your destination";
+let formatter = new MessageFormat("en", message);
+formatter.format({
+  distance: /* what goes here? */
+})
+```
 
-      Your explainer can point readers to the `index.html` generated from `spec.emu`
-      via markdown like
+A number annotated with a unit is the only data type required for MessageFormat 2.0 that does not have an analog in JavaScript. See: [List of functions in MessageFormat 2.0](https://github.com/unicode-org/message-format-wg/blob/main/spec/functions/README.md).
 
-      ```markdown
-      You can browse the [ecmarkup output](https://ACCOUNT.github.io/PROJECT/)
-      or browse the [source](https://github.com/ACCOUNT/PROJECT/blob/HEAD/spec.emu).
-      ```
+Adding a new primordial, such as [Amount](https://github.com/tc39/proposal-amount), would solve this problem and multiple others impacting i18n, but it comes at a cost. As a starting point, we should explore solutions that would allow third-party polyfills and MessageFormat libraries to implement an Amount-like object, which is also something the TC39 committee wants to see as part of an Amount proposal.
 
-      where *ACCOUNT* and *PROJECT* are the first two path elements in your project's Github URL.
-      For example, for github.com/**tc39**/**template-for-proposals**, *ACCOUNT* is “tc39”
-      and *PROJECT* is “template-for-proposals”.
+## Proposed Solution
 
+Add a protocol to `Intl.NumberFormat.prototype.format` that accepts a numeric type paired with a unit. The protocol should also be accepted by `Intl.PluralRules.prototype.select`.
 
-## Maintain your proposal repo
+Given these inputs:
 
-  1. Make your changes to `spec.emu` (ecmarkup uses HTML syntax, but is not HTML, so I strongly suggest not naming it “.html”)
-  1. Any commit that makes meaningful changes to the spec, should run `npm run build` to verify that the build will succeed and the output looks as expected.
-  1. Whenever you update `ecmarkup`, run `npm run build` to verify that the build will succeed and the output looks as expected.
+```javascript
+let locale = /* an Intl.Locale, a string, or a list of these */;
+let unit = /* a string */;
+let number = /* a Number, a BigInt, or a string */;
+```
 
-  [explainer]: https://github.com/tc39/how-we-work/blob/HEAD/explainer.md
+The user can currently write:
+
+```javascript
+let formatter = new Intl.NumberFormat(locale, {
+    style: "unit",
+    unit,
+});
+let result = formatter.format(number);
+```
+
+With a protocol, the user can instead write:
+
+```javascript
+let formatter = new Intl.NumberFormat(locale, {
+    style: "unit",
+});
+let result = formatter.format({
+    number,
+    unit,
+});
+```
+
+### Construction vs Formatting
+
+Intl has long allowed constructors and formatting functions to be separate. This achieves two ends:
+
+1. The formatter can encapsulate the locale and options to specify the style and context of the value being formatted, such as when initializing a templating engine.
+2. Locale data can be initialized ahead of time, allowing increased efficiency when formatting multiple items in a loop.
+
+By moving `unit` from the constructor bucket to the formatting bucket, we advance goal 1.
+
+The proposal comes at some cost to goal 2, since loading the unit display name has some implementation cost that must now be deferred. We will work with ICU[4X] to minimize this cost.
+
+### Currencies
+
+The protocol would allow currency units to be specified in a similar way.
+
+```javascript
+let locale = /* an Intl.Locale, a string, or a list of these */;
+let currency = /* a string */;
+let number = /* a Number, a BigInt, or a string */;
+
+// Today:
+let formatter = new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency,
+});
+let result = formatter.format(number);
+
+// With the protocol:
+let formatter = new Intl.NumberFormat(locale, {
+    style: "currency",
+});
+let result = formatter.format({
+    number,
+    currency,  // or unit: currency
+});
+```
+
+## Integration with Amount and Decimal
+
+The Amount proposal seeks to add a primordial encapsulating a numeric type with a unit. It will implement the Intl protocol specified here.
+
+The Decimal proposal seeks to add a primordial that represents a decimal number in a form designed for correct and efficient arithmetic. It will be supported as another number type for the `number` field in the protocol.
