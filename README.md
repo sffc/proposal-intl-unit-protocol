@@ -89,8 +89,22 @@ let formatter = new Intl.NumberFormat(locale, {
 });
 let result = formatter.format({
     number,
-    currency,  // or unit: currency
+    currency,  // or unit: currency? (to be discussed)
 });
+```
+
+### Handling Conflicting Fields
+
+If the constructor has a unit and the unit is not the same as the one in the protocol, an exception will be thrown, since this is a programmer error.
+
+```javascript
+new Intl.NumberFormat("en", {
+    style: "unit",
+    unit: "meter",
+}).format({
+    number: 1234,
+    unit: "kilometer",
+}) // throws a RangeError
 ```
 
 ## Integration with Future Proposals
