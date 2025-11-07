@@ -93,7 +93,7 @@ let result = formatter.format({
 });
 ```
 
-### Handling Conflicting Fields
+### Conflicting Units
 
 If the constructor has a unit and the unit is not the same as the one in the protocol, an exception will be thrown, since this is a programmer error.
 
