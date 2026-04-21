@@ -1,13 +1,13 @@
 # TC39 Intl Unit Protocol
 
-Status: Stage 1
+Status: Stage 2
 
 Champion: Shane F Carr (Google i18n)
 
-Slides:
+History:
 
-- [Ask for Stage 1 @ 111th Meeting of TC39](https://docs.google.com/presentation/d/15gvLA5clt7f6nconED64JzFKi7D-buCyOjQSmKuhEFY/edit)
-- [Ask for Stage 2 @ 113th Meeting of TC39](https://docs.google.com/presentation/d/1ECuRD0MU6-Z5DzBJaOi5W3u7f2kf_PZYZU9cXjg5Ock/edit)
+- [Ask for Stage 1 @ 111th Meeting of TC39](https://docs.google.com/presentation/d/15gvLA5clt7f6nconED64JzFKi7D-buCyOjQSmKuhEFY/edit) ([Notes](https://github.com/tc39/notes/blob/main/meetings/2025-11/november-18.md#intl-unit-protocol))
+- [Ask for Stage 2 @ 113th Meeting of TC39](https://docs.google.com/presentation/d/1ECuRD0MU6-Z5DzBJaOi5W3u7f2kf_PZYZU9cXjg5Ock/edit) (Notes pending)
 
 Draft Spec: https://tc39.es/proposal-intl-unit-protocol/
 
